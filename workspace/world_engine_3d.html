@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Procedural Universe & Civilization Simulator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; font-family: monospace; color: #00ffcc; }
+        #hud { position: absolute; top: 20px; left: 20px; z-index: 100; background: rgba(0,20,30,0.85); padding: 20px; border: 1px solid #00ffcc; border-radius: 12px; pointer-events: none; box-shadow: 0 0 20px rgba(0,255,204,0.3); }
+        #stats { font-size: 14px; line-height: 1.8; }
+        .highlight { color: #ff0055; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div id="hud">
+        <h2>🌌 3D PROCEDURAL UNIVERSE & CIVILIZATION ENGINE v1.0</h2>
+        <div id="stats">
+            <p>Galactic Core: <span class="highlight">Active</span></p>
+            <p>Procedural Entities: <span id="entity-count">10,000 Star Orbits</span></p>
+            <p>Civilization Epoch: <span class="highlight">Type II Dyson Swarm Expansion</span></p>
+            <p>Simulation Velocity: 1.0x Realtime</p>
+        </div>
+    </div>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Procedural Starfield & Celestial Core
+        const count = 10000;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(count * 3);
+        const colors = new Float32Array(count * 3);
+
+        for(let i=0; i<count*3; i+=3) {
+            positions[i] = (Math.random() - 0.5) * 500;
+            positions[i+1] = (Math.random() - 0.5) * 500;
+            positions[i+2] = (Math.random() - 0.5) * 500;
+            colors[i] = Math.random();
+            colors[i+1] = Math.random() * 0.8 + 0.2;
+            colors[i+2] = 1.0;
+        }
+        geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+        const material = new THREE.PointsMaterial({ size: 1.8, vertexColors: true });
+        const starfield = new THREE.Points(geometry, material);
+        scene.add(starfield);
+
+        // Central Planet Sphere
+        const planetGeo = new THREE.SphereGeometry(15, 32, 32);
+        const planetMat = new THREE.MeshBasicMaterial({ color: 0x00aaff, wireframe: true });
+        const planet = new THREE.Mesh(planetGeo, planetMat);
+        scene.add(planet);
+
+        camera.position.z = 120;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            starfield.rotation.y += 0.002;
+            starfield.rotation.x += 0.001;
+            planet.rotation.y += 0.01;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

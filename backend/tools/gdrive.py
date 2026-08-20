@@ -1,23 +1,81 @@
 import os
+import io
+import json
 import logging
 from typing import Dict, Any
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseUpload
 from backend.config import Config
 
 logger = logging.getLogger("GDriveTool")
 
+SCOPES = ['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/drive']
+
 class GDriveTool:
     def __init__(self, folder_id: str = Config.GDRIVE_FOLDER_ID):
         self.folder_id = folder_id
+        self.service = self._init_service()
+
+    def _init_service(self):
+        raw_json = os.getenv("GDRIVE_SERVICE_ACCOUNT_JSON", "").strip()
+        if not raw_json:
+            logger.info("GDRIVE_SERVICE_ACCOUNT_JSON not configured.")
+            return None
+        
+        try:
+            cred_dict = json.loads(raw_json)
+            creds = service_account.Credentials.from_service_account_info(cred_dict, scopes=SCOPES)
+            return build('drive', 'v3', credentials=creds)
+        except Exception as e:
+            logger.error(f"Failed to initialize Google Drive service: {e}")
+            return None
 
     def sync_file_info(self, file_name: str, file_content: str) -> Dict[str, Any]:
         """
-        Prepares and logs cloud sync metadata for 5TB Google Drive storage folder.
+        Uploads or updates a file directly in the Google Drive 5TB storage folder.
         """
-        logger.info(f"Syncing {file_name} to Google Drive folder {self.folder_id}")
-        return {
-            "status": "synced",
-            "folder_id": self.folder_id,
-            "folder_url": f"https://drive.google.com/drive/folders/{self.folder_id}",
-            "file_name": file_name,
-            "bytes": len(file_content)
-        }
+        if not self.service:
+            logger.info(f"Mock Google Drive Sync for {file_name} (Awaiting Service Account JSON).")
+            return {
+                "status": "pending_credentials",
+                "folder_id": self.folder_id,
+                "folder_url": f"https://drive.google.com/drive/folders/{self.folder_id}",
+                "file_name": file_name
+            }
+
+        try:
+            # Check if file exists in folder
+            query = f"'{self.folder_id}' in parents and name = '{file_name}' and trashed = false"
+            results = self.service.files().list(q=query, fields="files(id, name)").execute()
+            files = results.get('files', [])
+
+            fh = io.BytesIO(file_content.encode('utf-8'))
+            media = MediaIoBaseUpload(fh, mimetype='text/plain', resumable=True)
+
+            if files:
+                # Update existing file
+                file_id = files[0]['id']
+                updated_file = self.service.files().update(
+                    fileId=file_id,
+                    media_body=media,
+                    fields='id, name, webViewLink'
+                ).execute()
+                logger.info(f"Updated file {file_name} on Google Drive (ID: {file_id})")
+                return {"status": "success", "action": "updated", "file_id": file_id, "link": updated_file.get("webViewLink")}
+            else:
+                # Create new file
+                file_metadata = {
+                    'name': file_name,
+                    'parents': [self.folder_id]
+                }
+                created_file = self.service.files().create(
+                    body=file_metadata,
+                    media_body=media,
+                    fields='id, name, webViewLink'
+                ).execute()
+                logger.info(f"Created file {file_name} on Google Drive (ID: {created_file.get('id')})")
+                return {"status": "success", "action": "created", "file_id": created_file.get("id"), "link": created_file.get("webViewLink")}
+        except Exception as e:
+            logger.error(f"Google Drive API upload error: {e}")
+            return {"status": "error", "message": str(e)}

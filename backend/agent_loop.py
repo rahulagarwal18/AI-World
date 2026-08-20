@@ -6,6 +6,7 @@ from backend.groq_client import GroqEngine
 from backend.tools.workspace import WorkspaceTool
 from backend.tools.executor import ExecutorTool
 from backend.tools.git_tool import GitTool
+from backend.tools.github_api import GitHubAPITool
 from backend.tools.gdrive import GDriveTool
 
 logger = logging.getLogger("AgentLoop")
@@ -31,6 +32,7 @@ class AgentLoop:
         self.workspace = WorkspaceTool()
         self.executor = ExecutorTool()
         self.git = GitTool()
+        self.github_api = GitHubAPITool()
         self.gdrive = GDriveTool()
         self.history: List[Dict[str, Any]] = []
 
@@ -61,10 +63,20 @@ class AgentLoop:
         
         if act_type == "write_file":
             res = self.workspace.write_file(action["path"], action["content"])
-            # Sync to Google Drive as well
-            self.gdrive.sync_file_info(action["path"], action["content"])
-            # Auto commit and push to GitHub so user sees files live instantly!
-            self.git.commit_and_push(f"AI created {action['path']}: {action.get('thought', '')}")
+            # 1. Sync to Google Drive
+            gdrive_res = self.gdrive.sync_file_info(action["path"], action["content"])
+            # 2. Try direct GitHub REST API commit
+            gh_res = self.github_api.commit_file_direct(
+                action["path"], 
+                action["content"], 
+                f"AI created {action['path']}: {action.get('thought', '')}"
+            )
+            # 3. Fallback git commit & push
+            git_res = self.git.commit_and_push(f"AI created {action['path']}: {action.get('thought', '')}")
+            
+            res["github_api"] = gh_res
+            res["gdrive"] = gdrive_res
+            res["git_local"] = git_res
             return res
 
         elif act_type == "execute_code":

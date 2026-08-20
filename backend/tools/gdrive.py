@@ -4,6 +4,7 @@ import json
 import logging
 from typing import Dict, Any
 from google.oauth2 import service_account
+from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 from backend.config import Config
@@ -17,10 +18,30 @@ class GDriveTool:
         self.folder_id = folder_id
 
     def _get_service(self):
+        # 1. Try OAuth2 Refresh Token (Best for Personal 5TB Google Drive)
+        client_id = os.getenv("GDRIVE_CLIENT_ID", "").strip()
+        client_secret = os.getenv("GDRIVE_CLIENT_SECRET", "").strip()
+        refresh_token = os.getenv("GDRIVE_REFRESH_TOKEN", "").strip()
+
+        if client_id and client_secret and refresh_token:
+            try:
+                creds = Credentials(
+                    token=None,
+                    refresh_token=refresh_token,
+                    token_uri="https://oauth2.googleapis.com/token",
+                    client_id=client_id,
+                    client_secret=client_secret,
+                    scopes=SCOPES
+                )
+                service = build('drive', 'v3', credentials=creds)
+                return service, None
+            except Exception as e:
+                logger.error(f"Failed OAuth2 init: {e}")
+
+        # 2. Fallback to Service Account JSON
         raw_json = os.getenv("GDRIVE_SERVICE_ACCOUNT_JSON", "").strip()
         if not raw_json:
-            logger.info("GDRIVE_SERVICE_ACCOUNT_JSON not set.")
-            return None, "GDRIVE_SERVICE_ACCOUNT_JSON env var missing."
+            return None, "Google Drive credentials not set (Requires OAuth2 or Service Account)."
         
         try:
             raw_clean = raw_json.replace('\\n', '\n')
@@ -32,13 +53,12 @@ class GDriveTool:
             service = build('drive', 'v3', credentials=creds)
             return service, None
         except Exception as e:
-            logger.error(f"Failed to parse Google Drive credentials: {e}")
+            logger.error(f"Failed Service Account init: {e}")
             return None, str(e)
 
     def sync_file_info(self, file_name: str, file_content: str) -> Dict[str, Any]:
         """
         Uploads or updates a file directly in the Google Drive 5TB storage folder.
-        Uses supportsAllDrives=True to leverage the target folder's storage quota.
         """
         service, err = self._get_service()
         if not service:

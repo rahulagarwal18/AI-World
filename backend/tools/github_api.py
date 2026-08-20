@@ -17,7 +17,8 @@ class GitHubAPITool:
         Commits a file directly to the GitHub repository using the GitHub REST API.
         Works anywhere (local, Render, Vercel) with 100% reliability.
         """
-        if not self.token:
+        token = os.getenv("GITHUB_TOKEN", "").strip() or self.token
+        if not token:
             logger.warning("GITHUB_TOKEN not set in environment variables. Skipping direct GitHub REST API commit.")
             return {"status": "skipped", "reason": "No GITHUB_TOKEN configured."}
 
@@ -25,7 +26,7 @@ class GitHubAPITool:
         url = f"https://api.github.com/repos/{self.username}/{self.repo}/contents/{target_path}"
         
         headers = {
-            "Authorization": f"Bearer {self.token}",
+            "Authorization": f"token {token}",
             "Accept": "application/vnd.github.v3+json",
             "X-GitHub-Api-Version": "2022-11-28"
         }

@@ -83,13 +83,14 @@ def get_visual_viewer():
                     <h1 class="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
                         🤖 AI World Creation Hub
                     </h1>
-                    <p class="text-slate-400 text-sm mt-1">Self-Directed Creation Engine • Powered by Groq & Vercel</p>
+                    <p class="text-slate-400 text-sm mt-1">Self-Directed Creation Engine • Fully Automatic 24/7 Mode Active</p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <button onclick="triggerStep()" id="step-btn" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg transition transform active:scale-95 flex items-center gap-2">
-                        <span>⚡</span> Trigger AI Step Now
-                    </button>
-                    <a href="https://github.com/rahulagarwal18/AI-World/tree/main/workspace" target="_blank" class="bg-slate-800 hover:bg-slate-700 px-4 py-2.5 rounded-xl text-sm font-semibold transition border border-slate-700">
+                    <div class="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-4 py-2 rounded-xl text-emerald-400 text-xs font-semibold">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span>Auto-Creation Active</span>
+                    </div>
+                    <a href="https://github.com/rahulagarwal18/AI-World/tree/main/workspace" target="_blank" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 text-xs rounded-xl font-semibold transition border border-slate-700">
                         🐙 GitHub
                     </a>
                 </div>
@@ -134,18 +135,18 @@ def get_visual_viewer():
         </div>
 
         <script>
-            async function triggerStep() {
-                const btn = document.getElementById('step-btn');
-                btn.disabled = true;
-                btn.innerText = '⚡ AI Thinking & Creating...';
+            let isAutoStepRunning = false;
+
+            async function autoTriggerStep() {
+                if (isAutoStepRunning) return;
+                isAutoStepRunning = true;
                 try {
                     await fetch('/api/step');
                     await loadData();
                 } catch(e) {
-                    console.error(e);
+                    console.error("Auto step error:", e);
                 } finally {
-                    btn.disabled = false;
-                    btn.innerHTML = '<span>⚡</span> Trigger AI Step Now';
+                    isAutoStepRunning = false;
                 }
             }
 
@@ -170,7 +171,7 @@ def get_visual_viewer():
                             `;
                         }).join('');
                     } else {
-                        actionsDiv.innerHTML = '<p class="text-slate-500 text-sm">Click "Trigger AI Step Now" to start creation.</p>';
+                        actionsDiv.innerHTML = '<p class="text-slate-500 text-sm">Auto-creation active. Running steps...</p>';
                     }
 
                     const resFiles = await fetch('/api/files');
@@ -198,7 +199,8 @@ def get_visual_viewer():
             }
 
             loadData();
-            setInterval(loadData, 5000);
+            // Automatically poll and trigger AI steps every 12 seconds
+            setInterval(autoTriggerStep, 12000);
         </script>
     </body>
     </html>

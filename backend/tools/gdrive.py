@@ -25,7 +25,7 @@ class GDriveTool:
         try:
             # Handle unescaped or escaped newlines in environment variable
             raw_clean = raw_json.replace('\\n', '\n')
-            cred_dict = json.loads(raw_clean)
+            cred_dict = json.loads(raw_clean, strict=False)
             if "private_key" in cred_dict:
                 cred_dict["private_key"] = cred_dict["private_key"].replace('\\n', '\n')
                 

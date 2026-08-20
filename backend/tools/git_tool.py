@@ -1,23 +1,36 @@
+import os
 import subprocess
+import logging
 from pathlib import Path
 from typing import Dict, Any
 from backend.config import Config
 
+logger = logging.getLogger("GitTool")
+
 class GitTool:
     def __init__(self, repo_dir: Path = Config.WORKSPACE_DIR, repo_url: str = Config.GITHUB_REPO_URL):
         self.repo_dir = repo_dir
-        self.repo_url = repo_url
+        self.raw_repo_url = repo_url
+
+    def _get_authed_url(self) -> str:
+        token = os.getenv("GITHUB_TOKEN", "").strip()
+        if token and "github.com" in self.raw_repo_url and "@" not in self.raw_repo_url:
+            # Inject token into https://token@github.com/...
+            return self.raw_repo_url.replace("https://", f"https://{token}@")
+        return self.raw_repo_url
 
     def commit_and_push(self, commit_message: str) -> Dict[str, Any]:
         """
         Initializes git (if needed), adds all files, commits, and pushes to remote.
         """
         try:
-            # Ensure git initialized
+            authed_url = self._get_authed_url()
             subprocess.run("git init", shell=True, cwd=self.repo_dir, capture_output=True)
-            subprocess.run(f"git remote add origin {self.repo_url}", shell=True, cwd=self.repo_dir, capture_output=True)
+            subprocess.run(f"git remote set-url origin {authed_url} || git remote add origin {authed_url}", shell=True, cwd=self.repo_dir, capture_output=True)
             
-            # Add & commit
+            subprocess.run("git config user.name 'AI Creator Engine'", shell=True, cwd=self.repo_dir, capture_output=True)
+            subprocess.run("git config user.email 'ai@creation.engine'", shell=True, cwd=self.repo_dir, capture_output=True)
+            
             subprocess.run("git add .", shell=True, cwd=self.repo_dir, capture_output=True)
             res_commit = subprocess.run(
                 f'git commit -m "{commit_message}"',
@@ -27,7 +40,6 @@ class GitTool:
                 text=True
             )
             
-            # Push
             res_push = subprocess.run(
                 "git push -u origin main",
                 shell=True,
@@ -39,8 +51,8 @@ class GitTool:
             return {
                 "status": "success",
                 "commit_output": res_commit.stdout,
-                "push_output": res_push.stdout or res_push.stderr,
-                "repo_url": self.repo_url
+                "push_output": res_push.stdout or res_push.stderr
             }
         except Exception as e:
+            logger.error(f"Git push failed: {e}")
             return {"status": "error", "message": str(e)}

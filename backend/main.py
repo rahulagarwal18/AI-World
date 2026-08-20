@@ -1,7 +1,6 @@
 import asyncio
 import logging
 from pathlib import Path
-from contextlib import asynccontextmanager
 from fastapi import FastAPI, Response
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,30 +8,8 @@ from backend.agent_loop import AgentLoop
 from backend.config import Config
 
 agent = AgentLoop()
-is_running = True
 
-async def run_autonomous_loop():
-    global is_running
-    logger = logging.getLogger("AutoLoop")
-    logger.info("Starting autonomous 24/7 background creation loop...")
-    while is_running:
-        try:
-            log = agent.run_cycle()
-            logger.info(f"Completed cycle: {log.get('action', {}).get('action')}")
-            await asyncio.sleep(15)
-        except Exception as e:
-            logger.error(f"Error in agent loop: {e}")
-            await asyncio.sleep(20)
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    task = asyncio.create_task(run_autonomous_loop())
-    yield
-    global is_running
-    is_running = False
-    task.cancel()
-
-app = FastAPI(title="Autonomous AI Creation Engine", lifespan=lifespan)
+app = FastAPI(title="Autonomous AI Creation Engine")
 
 app.add_middleware(
     CORSMiddleware,
@@ -48,7 +25,7 @@ def get_status():
     return {
         "status": "active",
         "engine": "Groq Autonomous AI Engine",
-        "mode": "24/7 Continuous Cloud Creation",
+        "platform": "Vercel & Cloud Compatible",
         "history_count": len(agent.history),
         "recent_action": agent.history[-1] if agent.history else None,
         "viewer_url": "/viewer"
@@ -59,7 +36,20 @@ def get_status():
 def get_history():
     return {"history": agent.history}
 
+@app.post("/step")
+@app.post("/api/step")
+@app.get("/step")
+@app.get("/api/step")
+def trigger_step():
+    """Triggers an autonomous creation step (Serverless & Cron Compatible)"""
+    try:
+        log = agent.run_cycle()
+        return log
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 @app.get("/files")
+@app.get("/api/files")
 def list_files():
     return {"files": agent.workspace.list_files()}
 
@@ -93,14 +83,14 @@ def get_visual_viewer():
                     <h1 class="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
                         🤖 AI World Creation Hub
                     </h1>
-                    <p class="text-slate-400 text-sm mt-1">Self-Directed Creation Engine • Powered by Groq API</p>
+                    <p class="text-slate-400 text-sm mt-1">Self-Directed Creation Engine • Powered by Groq & Vercel</p>
                 </div>
-                <div class="flex gap-4">
-                    <a href="https://github.com/rahulagarwal18/AI-World/tree/main/workspace" target="_blank" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl text-sm font-semibold transition border border-slate-700">
-                        🐙 GitHub Workspace
-                    </a>
-                    <a href="https://drive.google.com/drive/folders/16JoYjvINixhs1TRgZLplF9mdIMXl-eP0" target="_blank" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl text-sm font-semibold transition">
-                        ☁️ 5TB Google Drive
+                <div class="flex items-center gap-3">
+                    <button onclick="triggerStep()" id="step-btn" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg transition transform active:scale-95 flex items-center gap-2">
+                        <span>⚡</span> Trigger AI Step Now
+                    </button>
+                    <a href="https://github.com/rahulagarwal18/AI-World/tree/main/workspace" target="_blank" class="bg-slate-800 hover:bg-slate-700 px-4 py-2.5 rounded-xl text-sm font-semibold transition border border-slate-700">
+                        🐙 GitHub
                     </a>
                 </div>
             </header>
@@ -144,9 +134,23 @@ def get_visual_viewer():
         </div>
 
         <script>
+            async function triggerStep() {
+                const btn = document.getElementById('step-btn');
+                btn.disabled = true;
+                btn.innerText = '⚡ AI Thinking & Creating...';
+                try {
+                    await fetch('/api/step');
+                    await loadData();
+                } catch(e) {
+                    console.error(e);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>⚡</span> Trigger AI Step Now';
+                }
+            }
+
             async function loadData() {
                 try {
-                    // Fetch History
                     const resHist = await fetch('/api/history');
                     const dataHist = await resHist.json();
                     const actionsDiv = document.getElementById('actions-list');
@@ -166,11 +170,10 @@ def get_visual_viewer():
                             `;
                         }).join('');
                     } else {
-                        actionsDiv.innerHTML = '<p class="text-slate-500 text-sm">Engine starting up. Creating first items...</p>';
+                        actionsDiv.innerHTML = '<p class="text-slate-500 text-sm">Click "Trigger AI Step Now" to start creation.</p>';
                     }
 
-                    // Fetch Files
-                    const resFiles = await fetch('/files');
+                    const resFiles = await fetch('/api/files');
                     const dataFiles = await resFiles.json();
                     const filesDiv = document.getElementById('files-list');
 

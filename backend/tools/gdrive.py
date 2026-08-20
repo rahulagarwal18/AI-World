@@ -23,7 +23,6 @@ class GDriveTool:
             return None, "GDRIVE_SERVICE_ACCOUNT_JSON env var missing."
         
         try:
-            # Handle unescaped or escaped newlines in environment variable
             raw_clean = raw_json.replace('\\n', '\n')
             cred_dict = json.loads(raw_clean, strict=False)
             if "private_key" in cred_dict:
@@ -39,6 +38,7 @@ class GDriveTool:
     def sync_file_info(self, file_name: str, file_content: str) -> Dict[str, Any]:
         """
         Uploads or updates a file directly in the Google Drive 5TB storage folder.
+        Uses supportsAllDrives=True to leverage the target folder's storage quota.
         """
         service, err = self._get_service()
         if not service:
@@ -51,7 +51,12 @@ class GDriveTool:
 
         try:
             query = f"'{self.folder_id}' in parents and name = '{file_name}' and trashed = false"
-            results = service.files().list(q=query, fields="files(id, name)").execute()
+            results = service.files().list(
+                q=query, 
+                fields="files(id, name)",
+                supportsAllDrives=True,
+                includeItemsFromAllDrives=True
+            ).execute()
             files = results.get('files', [])
 
             fh = io.BytesIO(file_content.encode('utf-8'))
@@ -62,7 +67,8 @@ class GDriveTool:
                 updated_file = service.files().update(
                     fileId=file_id,
                     media_body=media,
-                    fields='id, name, webViewLink'
+                    fields='id, name, webViewLink',
+                    supportsAllDrives=True
                 ).execute()
                 logger.info(f"Updated file {file_name} on Google Drive (ID: {file_id})")
                 return {"status": "success", "action": "updated", "file_id": file_id, "link": updated_file.get("webViewLink")}
@@ -74,7 +80,8 @@ class GDriveTool:
                 created_file = service.files().create(
                     body=file_metadata,
                     media_body=media,
-                    fields='id, name, webViewLink'
+                    fields='id, name, webViewLink',
+                    supportsAllDrives=True
                 ).execute()
                 logger.info(f"Created file {file_name} on Google Drive (ID: {created_file.get('id')})")
                 return {"status": "success", "action": "created", "file_id": created_file.get("id"), "link": created_file.get("webViewLink")}

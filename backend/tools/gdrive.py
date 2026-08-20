@@ -11,8 +11,6 @@ from backend.config import Config
 
 logger = logging.getLogger("GDriveTool")
 
-SCOPES = ['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/drive']
-
 class GDriveTool:
     def __init__(self, folder_id: str = Config.GDRIVE_FOLDER_ID):
         self.folder_id = folder_id
@@ -30,8 +28,7 @@ class GDriveTool:
                     refresh_token=refresh_token,
                     token_uri="https://oauth2.googleapis.com/token",
                     client_id=client_id,
-                    client_secret=client_secret,
-                    scopes=SCOPES
+                    client_secret=client_secret
                 )
                 service = build('drive', 'v3', credentials=creds)
                 return service, None
@@ -49,7 +46,7 @@ class GDriveTool:
             if "private_key" in cred_dict:
                 cred_dict["private_key"] = cred_dict["private_key"].replace('\\n', '\n')
                 
-            creds = service_account.Credentials.from_service_account_info(cred_dict, scopes=SCOPES)
+            creds = service_account.Credentials.from_service_account_info(cred_dict, scopes=['https://www.googleapis.com/auth/drive'])
             service = build('drive', 'v3', credentials=creds)
             return service, None
         except Exception as e:
@@ -73,9 +70,7 @@ class GDriveTool:
             query = f"'{self.folder_id}' in parents and name = '{file_name}' and trashed = false"
             results = service.files().list(
                 q=query, 
-                fields="files(id, name)",
-                supportsAllDrives=True,
-                includeItemsFromAllDrives=True
+                fields="files(id, name)"
             ).execute()
             files = results.get('files', [])
 
@@ -87,8 +82,7 @@ class GDriveTool:
                 updated_file = service.files().update(
                     fileId=file_id,
                     media_body=media,
-                    fields='id, name, webViewLink',
-                    supportsAllDrives=True
+                    fields='id, name, webViewLink'
                 ).execute()
                 logger.info(f"Updated file {file_name} on Google Drive (ID: {file_id})")
                 return {"status": "success", "action": "updated", "file_id": file_id, "link": updated_file.get("webViewLink")}
@@ -100,8 +94,7 @@ class GDriveTool:
                 created_file = service.files().create(
                     body=file_metadata,
                     media_body=media,
-                    fields='id, name, webViewLink',
-                    supportsAllDrives=True
+                    fields='id, name, webViewLink'
                 ).execute()
                 logger.info(f"Created file {file_name} on Google Drive (ID: {created_file.get('id')})")
                 return {"status": "success", "action": "created", "file_id": created_file.get("id"), "link": created_file.get("webViewLink")}

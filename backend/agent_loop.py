@@ -63,6 +63,8 @@ class AgentLoop:
             res = self.workspace.write_file(action["path"], action["content"])
             # Sync to Google Drive as well
             self.gdrive.sync_file_info(action["path"], action["content"])
+            # Auto commit and push to GitHub so user sees files live instantly!
+            self.git.commit_and_push(f"AI created {action['path']}: {action.get('thought', '')}")
             return res
 
         elif act_type == "execute_code":

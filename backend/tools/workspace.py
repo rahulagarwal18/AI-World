@@ -31,6 +31,6 @@ class WorkspaceTool:
     def list_files(self) -> List[str]:
         files = []
         for p in self.root.rglob("*"):
-            if p.is_file():
+            if p.is_file() and ".git" not in p.parts:
                 files.append(str(p.relative_to(self.root)).replace("\\", "/"))
         return files

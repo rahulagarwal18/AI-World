@@ -48,6 +48,14 @@ def trigger_step():
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+@app.get("/debug/gdrive")
+def debug_gdrive():
+    res = agent.gdrive.sync_file_info("test_gdrive_sync.txt", "Google Drive API Test File from AI Engine")
+    return {
+        "folder_id": agent.gdrive.folder_id,
+        "gdrive_result": res
+    }
+
 @app.get("/files")
 @app.get("/api/files")
 def list_files():

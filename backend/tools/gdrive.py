@@ -15,48 +15,51 @@ SCOPES = ['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.
 class GDriveTool:
     def __init__(self, folder_id: str = Config.GDRIVE_FOLDER_ID):
         self.folder_id = folder_id
-        self.service = self._init_service()
 
-    def _init_service(self):
+    def _get_service(self):
         raw_json = os.getenv("GDRIVE_SERVICE_ACCOUNT_JSON", "").strip()
         if not raw_json:
-            logger.info("GDRIVE_SERVICE_ACCOUNT_JSON not configured.")
-            return None
+            logger.info("GDRIVE_SERVICE_ACCOUNT_JSON not set.")
+            return None, "GDRIVE_SERVICE_ACCOUNT_JSON env var missing."
         
         try:
-            cred_dict = json.loads(raw_json)
+            # Handle unescaped or escaped newlines in environment variable
+            raw_clean = raw_json.replace('\\n', '\n')
+            cred_dict = json.loads(raw_clean)
+            if "private_key" in cred_dict:
+                cred_dict["private_key"] = cred_dict["private_key"].replace('\\n', '\n')
+                
             creds = service_account.Credentials.from_service_account_info(cred_dict, scopes=SCOPES)
-            return build('drive', 'v3', credentials=creds)
+            service = build('drive', 'v3', credentials=creds)
+            return service, None
         except Exception as e:
-            logger.error(f"Failed to initialize Google Drive service: {e}")
-            return None
+            logger.error(f"Failed to parse Google Drive credentials: {e}")
+            return None, str(e)
 
     def sync_file_info(self, file_name: str, file_content: str) -> Dict[str, Any]:
         """
         Uploads or updates a file directly in the Google Drive 5TB storage folder.
         """
-        if not self.service:
-            logger.info(f"Mock Google Drive Sync for {file_name} (Awaiting Service Account JSON).")
+        service, err = self._get_service()
+        if not service:
             return {
                 "status": "pending_credentials",
+                "error": err,
                 "folder_id": self.folder_id,
-                "folder_url": f"https://drive.google.com/drive/folders/{self.folder_id}",
                 "file_name": file_name
             }
 
         try:
-            # Check if file exists in folder
             query = f"'{self.folder_id}' in parents and name = '{file_name}' and trashed = false"
-            results = self.service.files().list(q=query, fields="files(id, name)").execute()
+            results = service.files().list(q=query, fields="files(id, name)").execute()
             files = results.get('files', [])
 
             fh = io.BytesIO(file_content.encode('utf-8'))
             media = MediaIoBaseUpload(fh, mimetype='text/plain', resumable=True)
 
             if files:
-                # Update existing file
                 file_id = files[0]['id']
-                updated_file = self.service.files().update(
+                updated_file = service.files().update(
                     fileId=file_id,
                     media_body=media,
                     fields='id, name, webViewLink'
@@ -64,12 +67,11 @@ class GDriveTool:
                 logger.info(f"Updated file {file_name} on Google Drive (ID: {file_id})")
                 return {"status": "success", "action": "updated", "file_id": file_id, "link": updated_file.get("webViewLink")}
             else:
-                # Create new file
                 file_metadata = {
                     'name': file_name,
                     'parents': [self.folder_id]
                 }
-                created_file = self.service.files().create(
+                created_file = service.files().create(
                     body=file_metadata,
                     media_body=media,
                     fields='id, name, webViewLink'

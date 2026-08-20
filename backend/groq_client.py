@@ -27,7 +27,7 @@ class GroqEngine:
             {"role": "user", "content": user_context}
         ]
 
-        while retries < Config.MAX_GROQ_RETRIES:
+        while retries < 8:
             try:
                 response = self.client.chat.completions.create(
                     model=self.model,
@@ -43,7 +43,7 @@ class GroqEngine:
                 if "429" in err_str or "rate limit" in err_str:
                     logger.warning(f"Groq Rate limit hit. Retrying in {wait_time}s... (Attempt {retries+1})")
                     time.sleep(wait_time)
-                    wait_time *= 2
+                    wait_time = min(wait_time * 2, 60)
                     retries += 1
                 else:
                     logger.error(f"Error calling Groq API: {e}")

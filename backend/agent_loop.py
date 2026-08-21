@@ -95,17 +95,18 @@ class AgentLoop:
         return cycle_log
 
     def _execute_action(self, action: Dict[str, Any]) -> Dict[str, Any]:
-        act_type = action.get("action")
-        
-        if act_type == "write_file":
-            res = self.workspace.write_file(action["path"], action["content"])
+        # Robust alias support for creative model action names
+        if act_type == "write_file" or (isinstance(act_type, str) and any(k in act_type.lower() for k in ["write", "file", "create", "architect"])):
+            path = action.get("path") or action.get("filename") or "world_asset.py"
+            content = action.get("content", "# Generated asset")
+            res = self.workspace.write_file(path, content)
             # 1. Sync to Google Drive
-            gdrive_res = self.gdrive.sync_file_info(action["path"], action["content"])
+            gdrive_res = self.gdrive.sync_file_info(path, content)
             # 2. Try direct GitHub REST API commit
             gh_res = self.github_api.commit_file_direct(
-                action["path"], 
-                action["content"], 
-                f"AI created {action['path']}: {action.get('thought', '')}"
+                path, 
+                content, 
+                f"AI created {path}: {action.get('thought', '')}"
             )
             # 3. Fallback git commit & push
             git_res = self.git.commit_and_push(f"AI created {action['path']}: {action.get('thought', '')}")

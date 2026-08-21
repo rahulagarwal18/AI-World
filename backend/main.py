@@ -372,54 +372,22 @@ def get_visual_viewer():
                             description = docMatch[1].trim().replace(/\n/g, '<br>');
                         }
 
-                        const visualHtml = `
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                            <script src="https://cdn.tailwindcss.com"></script>
-                            <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
-                            <style>
-                                body { background: #070a12; color: #e2e8f0; font-family: 'Plus Jakarta Sans', sans-serif; padding: 24px; }
-                                .mono { font-family: 'JetBrains Mono', monospace; }
-                                .glow-box { box-shadow: 0 0 20px rgba(6, 182, 212, 0.15); border: 1px solid rgba(255,255,255,0.1); }
-                            </style>
-                        </head>
-                        <body>
-                            <div class="space-y-6">
-                                <div class="bg-slate-900/90 p-5 rounded-2xl glow-box flex justify-between items-center">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-2xl">
-                                            ${isPython ? '🐍' : isJson ? '📊' : '📄'}
-                                        </div>
-                                        <div>
-                                            <h2 class="text-base font-bold text-cyan-300 mono">${filename}</h2>
-                                            <p class="text-xs text-slate-400 font-mono">${fileSizeKB} KB • ${linesCount} Lines • ${isPython ? 'Python Generator' : 'Data Asset'}</p>
-                                        </div>
-                                    </div>
-                                    <span class="px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-bold">
-                                        Active Asset
-                                    </span>
-                                </div>
-
-                                <div class="bg-slate-900/70 p-5 rounded-2xl glow-box space-y-3">
-                                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">AI Asset Specification & Purpose</h3>
-                                    <p class="text-sm text-slate-200 leading-relaxed font-medium bg-slate-950/80 p-4 rounded-xl border border-slate-800">${description}</p>
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div class="bg-slate-900/70 p-4 rounded-2xl glow-box space-y-1">
-                                        <span class="text-xs text-slate-400 font-medium">Execution Engine</span>
-                                        <p class="text-sm font-bold text-cyan-400 mono">Python 3.10 Runtime</p>
-                                    </div>
-                                    <div class="bg-slate-900/70 p-4 rounded-2xl glow-box space-y-1">
-                                        <span class="text-xs text-slate-400 font-medium">Cloud Vault Sync</span>
-                                        <p class="text-sm font-bold text-blue-400 mono">5TB Google Drive</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </body>
-                        </html>
-                        `;
+                        var icon = isPython ? '🐍' : (isJson ? '📊' : '📄');
+                        var typeLabel = isPython ? 'Python Asset Engine' : 'Data Asset';
+                        var visualHtml = '<!DOCTYPE html><html><head><script src="https://cdn.tailwindcss.com"></script><style>body{background:#070a12;color:#e2e8f0;font-family:sans-serif;padding:20px;}</style></head><body>'
+                        + '<div style="background:#1e293b;padding:16px;border-radius:16px;border:1px solid #334155;display:flex;align-items:center;gap:12px;">'
+                        + '<div style="font-size:32px;">' + icon + '</div>'
+                        + '<div><h2 style="color:#38bdf8;margin:0;font-size:15px;font-family:monospace;">' + filename + '</h2>'
+                        + '<p style="color:#94a3b8;margin:4px 0 0 0;font-size:12px;">' + fileSizeKB + ' KB • ' + linesCount + ' Lines • ' + typeLabel + '</p></div>'
+                        + '</div>'
+                        + '<div style="background:#0f172a;padding:16px;border-radius:16px;margin-top:16px;border:1px solid #334155;">'
+                        + '<h3 style="color:#94a3b8;font-size:11px;text-transform:uppercase;margin:0 0 8px 0;letter-spacing:1px;">AI Asset Specification & Purpose</h3>'
+                        + '<div style="color:#f8fafc;font-size:13px;line-height:1.6;background:#020617;padding:12px;border-radius:10px;border:1px solid #1e293b;">' + description + '</div>'
+                        + '</div>'
+                        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;">'
+                        + '<div style="background:#0f172a;padding:12px;border-radius:12px;border:1px solid #334155;"><span style="color:#94a3b8;font-size:11px;">Execution Runtime</span><p style="color:#38bdf8;margin:4px 0 0 0;font-weight:bold;font-size:12px;">Python 3.10</p></div>'
+                        + '<div style="background:#0f172a;padding:12px;border-radius:12px;border:1px solid #334155;"><span style="color:#94a3b8;font-size:11px;">Cloud Vault Sync</span><p style="color:#60a5fa;margin:4px 0 0 0;font-weight:bold;font-size:12px;">5TB Google Drive</p></div>'
+                        + '</div></body></html>';
                         iframe.srcdoc = visualHtml;
                     }
                 } catch(e) {

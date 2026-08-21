@@ -13,26 +13,8 @@ _agent_instance = None
 def get_agent():
     global _agent_instance
     if _agent_instance is None:
-        try:
-            _agent_instance = AgentLoop()
-        except Exception as e:
-            logging.error(f"Error initializing AgentLoop: {e}")
-            _agent_instance = None
+        _agent_instance = AgentLoop()
     return _agent_instance
-
-class DummyAgent:
-    def __init__(self):
-        self.history = []
-        self.workspace = type('obj', (object,), {'list_files': lambda *args, **kwargs: []})()
-        self.gdrive = type('obj', (object,), {'folder_id': '16JoYjvINixhs1TRgZLplF9mdIMXl-eP0', 'sync_file_info': lambda *args, **kwargs: {'status': 'initializing'}})()
-
-    def run_cycle(self):
-        ag = get_agent()
-        if ag:
-            return ag.run_cycle()
-        return {"status": "initializing", "action": {"action": "reflect", "thought": "Initializing Agent Loop..."}}
-
-agent = DummyAgent()
 
 is_running = True
 
@@ -42,7 +24,8 @@ async def run_autonomous_loop():
     logger.info("Starting background autonomous creation loop...")
     while is_running:
         try:
-            log = await asyncio.to_thread(agent.run_cycle)
+            ag = get_agent()
+            log = await asyncio.to_thread(ag.run_cycle)
             logger.info(f"Completed cycle action: {log.get('action') if isinstance(log, dict) else log}")
         except Exception as e:
             logger.error(f"Error in autonomous loop: {e}")
@@ -91,19 +74,21 @@ app.add_middleware(
 @app.get("/api")
 @app.head("/api")
 def get_status():
+    ag = get_agent()
     return {
         "status": "active",
         "engine": "Groq Autonomous AI Engine",
         "platform": "Vercel & Cloud Compatible",
-        "history_count": len(agent.history),
-        "recent_action": agent.history[-1] if agent.history else None,
+        "history_count": len(ag.history),
+        "recent_action": ag.history[-1] if ag.history else None,
         "viewer_url": "/viewer"
     }
 
 @app.get("/history")
 @app.get("/api/history")
 def get_history():
-    return {"history": agent.history}
+    ag = get_agent()
+    return {"history": ag.history}
 
 @app.post("/step")
 @app.post("/api/step")
@@ -112,23 +97,26 @@ def get_history():
 def trigger_step():
     """Triggers an autonomous creation step (Serverless & Cron Compatible)"""
     try:
-        log = agent.run_cycle()
+        ag = get_agent()
+        log = ag.run_cycle()
         return log
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
 @app.get("/debug/gdrive")
 def debug_gdrive():
-    res = agent.gdrive.sync_file_info("test_gdrive_sync.txt", "Google Drive API Test File from AI Engine")
+    ag = get_agent()
+    res = ag.gdrive.sync_file_info("test_gdrive_sync.txt", "Google Drive API Test File from AI Engine")
     return {
-        "folder_id": agent.gdrive.folder_id,
+        "folder_id": ag.gdrive.folder_id,
         "gdrive_result": res
     }
 
 @app.get("/files")
 @app.get("/api/files")
 def list_files():
-    return {"files": agent.workspace.list_files()}
+    ag = get_agent()
+    return {"files": ag.workspace.list_files()}
 
 @app.get("/preview/{file_path:path}")
 def preview_file(file_path: str):

@@ -69,25 +69,26 @@ class GroqEngine:
                         logger.warning(f"Model {current_model} not found, falling back...")
                         break
                     elif "429" in err_str or "rate limit" in err_str:
-                        # Extract exact retry delay if provided by Groq
-                        delay = wait_time
+                        # Extract exact retry delay if provided by Groq (e.g. 8m15s or 14.9s)
+                        delay = 10
                         import re
-                        match = re.search(r"try again in (\d+\.?\d*)s", err_str)
-                        if match:
-                            delay = float(match.group(1)) + 1.0
-                        logger.warning(f"Groq Rate limit hit on {current_model}. Retrying in {delay}s... (Attempt {retries+1})")
-                        time.sleep(delay)
-                        wait_time = min(wait_time * 2, 20)
+                        m_min = re.search(r"try again in (\d+)m(\d+\.?\d*)s", err_str)
+                        m_sec = re.search(r"try again in (\d+\.?\d*)s", err_str)
+                        if m_min:
+                            delay = int(m_min.group(1)) * 60 + float(m_min.group(2)) + 1.0
+                        elif m_sec:
+                            delay = float(m_sec.group(1)) + 1.0
+                        
+                        # Cap max sleep inside cycle to 15 seconds to keep server responsive
+                        sleep_time = min(delay, 15)
+                        logger.warning(f"Groq Rate limit hit on {current_model}. Pausing {sleep_time}s...")
+                        time.sleep(sleep_time)
                         retries += 1
                     else:
                         logger.error(f"Error calling Groq API ({current_model}): {e}")
                         break
-                    return {
-                        "action": "reflect",
-                        "thought": f"Groq API error: {str(e)}"
-                    }
         
         return {
             "action": "reflect",
-            "thought": "Exceeded maximum retries for Groq API calls due to rate limits."
+            "thought": "Groq API rate limit paused. Auto-resuming continuous creation loop shortly..."
         }

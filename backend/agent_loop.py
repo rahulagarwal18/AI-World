@@ -91,8 +91,10 @@ class AgentLoop:
             "action": action,
             "result": result
         }
-        self.history.append(cycle_log)
-        self._save_persistent_history()
+        # Only log meaningful creation actions to history stream
+        if action.get("action") != "reflect" or "rate limit" not in str(action.get("thought", "")).lower():
+            self.history.append(cycle_log)
+            self._save_persistent_history()
         return cycle_log
 
     def _execute_action(self, action: Dict[str, Any]) -> Dict[str, Any]:

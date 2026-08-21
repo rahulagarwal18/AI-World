@@ -16,6 +16,9 @@ def get_agent():
         _agent_instance = AgentLoop()
     return _agent_instance
 
+# Pre-instantiate agent so API endpoints respond in < 1ms
+agent_engine = get_agent()
+
 is_running = True
 
 async def run_autonomous_loop():

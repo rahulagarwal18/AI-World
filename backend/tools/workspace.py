@@ -6,14 +6,6 @@ class WorkspaceTool:
     def __init__(self, root: Path = Config.WORKSPACE_DIR):
         self.root = root
         self.root.mkdir(parents=True, exist_ok=True)
-        self._sync_from_git()
-
-    def _sync_from_git(self):
-        try:
-            import subprocess
-            subprocess.run("git pull origin main", shell=True, cwd=self.root.parent, capture_output=True)
-        except Exception:
-            pass
 
     def _resolve_path(self, rel_path: str) -> Path:
         target = (self.root / rel_path).resolve()

@@ -46,7 +46,7 @@ async def run_autonomous_loop():
             logger.info(f"Completed cycle action: {log.get('action') if isinstance(log, dict) else log}")
         except Exception as e:
             logger.error(f"Error in autonomous loop: {e}")
-        await asyncio.sleep(25)
+        await asyncio.sleep(45)
 
 async def self_keep_alive():
     """Pings public URL every 4 minutes to ensure zero spin-down delay"""
@@ -87,7 +87,9 @@ app.add_middleware(
 )
 
 @app.get("/")
+@app.head("/")
 @app.get("/api")
+@app.head("/api")
 def get_status():
     return {
         "status": "active",

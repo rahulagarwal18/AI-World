@@ -8,7 +8,7 @@ from backend.config import Config
 logger = logging.getLogger("GitTool")
 
 class GitTool:
-    def __init__(self, repo_dir: Path = Config.WORKSPACE_DIR, repo_url: str = Config.GITHUB_REPO_URL):
+    def __init__(self, repo_dir: Path = Config.BASE_DIR, repo_url: str = Config.GITHUB_REPO_URL):
         self.repo_dir = repo_dir
         self.raw_repo_url = repo_url
 
@@ -20,20 +20,16 @@ class GitTool:
 
     def commit_and_push(self, commit_message: str) -> Dict[str, Any]:
         """
-        Initializes git (if needed), renames branch to main, adds files, commits, and pushes to remote.
+        Commits workspace updates and pushes to remote GitHub repository without wiping repo structure.
         """
         try:
             authed_url = self._get_authed_url()
-            subprocess.run("git init", shell=True, cwd=self.repo_dir, capture_output=True)
             subprocess.run(f"git remote set-url origin {authed_url} || git remote add origin {authed_url}", shell=True, cwd=self.repo_dir, capture_output=True)
             
             subprocess.run("git config user.name 'AI Creator Engine'", shell=True, cwd=self.repo_dir, capture_output=True)
             subprocess.run("git config user.email 'ai@creation.engine'", shell=True, cwd=self.repo_dir, capture_output=True)
             
-            # Ensure branch name is main
-            subprocess.run("git branch -M main", shell=True, cwd=self.repo_dir, capture_output=True)
-
-            subprocess.run("git add .", shell=True, cwd=self.repo_dir, capture_output=True)
+            subprocess.run("git add workspace/", shell=True, cwd=self.repo_dir, capture_output=True)
             res_commit = subprocess.run(
                 f'git commit -m "{commit_message}"',
                 shell=True,
@@ -43,7 +39,7 @@ class GitTool:
             )
             
             res_push = subprocess.run(
-                "git push -u origin main --force",
+                "git push origin main",
                 shell=True,
                 cwd=self.repo_dir,
                 capture_output=True,

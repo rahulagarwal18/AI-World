@@ -45,7 +45,29 @@ class AgentLoop:
         self.git = GitTool()
         self.github_api = GitHubAPITool()
         self.gdrive = GDriveTool()
-        self.history: List[Dict[str, Any]] = []
+        self.history: List[Dict[str, Any]] = self._load_persistent_history()
+
+    def _load_persistent_history(self) -> List[Dict[str, Any]]:
+        """Loads historical action logs from persistent workspace/history.json file"""
+        try:
+            content = self.workspace.read_file("history.json")
+            data = json.loads(content)
+            if isinstance(data, list):
+                logger.info(f"Loaded {len(data)} persistent action logs from history.json")
+                return data
+        except Exception:
+            pass
+        return []
+
+    def _save_persistent_history(self):
+        """Saves historical action logs to persistent workspace/history.json and syncs to 5TB Google Drive"""
+        try:
+            history_json = json.dumps(self.history, indent=2)
+            self.workspace.write_file("history.json", history_json)
+            # Auto-sync persistent history to 5TB Google Drive
+            self.gdrive.sync_file_info("history.json", history_json)
+        except Exception as e:
+            logger.error(f"Error saving persistent history: {e}")
 
     def run_cycle(self) -> Dict[str, Any]:
         """
@@ -70,6 +92,7 @@ class AgentLoop:
             "result": result
         }
         self.history.append(cycle_log)
+        self._save_persistent_history()
         return cycle_log
 
     def _execute_action(self, action: Dict[str, Any]) -> Dict[str, Any]:

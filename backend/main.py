@@ -133,138 +133,322 @@ def get_visual_viewer():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>AI Creation Engine - Live Visual Viewer</title>
+        <title>AI World Creation Hub - Autonomous 24/7 Engine</title>
         <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
         <style>
-            body { background: #0f172a; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-            .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+            body { 
+                background: #0b0f19; 
+                color: #f1f5f9; 
+                font-family: 'Plus Jakarta Sans', sans-serif;
+            }
+            .mono { font-family: 'JetBrains Mono', monospace; }
+            .glass { 
+                background: rgba(15, 23, 42, 0.75); 
+                backdrop-filter: blur(16px); 
+                border: 1px solid rgba(255, 255, 255, 0.08); 
+            }
+            .glass-card {
+                background: rgba(30, 41, 59, 0.4);
+                border: 1px solid rgba(255, 255, 255, 0.06);
+            }
+            .glow-cyan { box-shadow: 0 0 25px rgba(6, 182, 212, 0.25); }
+            .glow-emerald { box-shadow: 0 0 20px rgba(16, 185, 129, 0.2); }
+            
+            /* Custom Scrollbars */
+            ::-webkit-scrollbar { width: 6px; height: 6px; }
+            ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
+            ::-webkit-scrollbar-thumb { background: rgba(51, 65, 85, 0.8); border-radius: 4px; }
+            ::-webkit-scrollbar-thumb:hover { background: rgba(6, 182, 212, 0.5); }
         </style>
     </head>
-    <body class="p-6">
-        <div class="max-w-7xl mx-auto space-y-6">
-            <!-- Header -->
-            <header class="glass p-6 rounded-2xl flex justify-between items-center shadow-2xl">
+    <body class="min-h-screen p-3 md:p-6 pb-20">
+        <div class="max-w-7xl mx-auto space-y-4 md:space-y-6">
+
+            <!-- Top Header Navbar -->
+            <header class="glass p-4 md:p-6 rounded-2xl md:rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-2xl glow-cyan">
                 <div>
-                    <h1 class="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-                        🤖 AI World Creation Hub
-                    </h1>
-                    <p class="text-slate-400 text-sm mt-1">Self-Directed Creation Engine • Fully Automatic 24/7 Mode Active</p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div class="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-4 py-2 rounded-xl text-emerald-400 text-xs font-semibold">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                        <span>Auto-Creation Active</span>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-xl shadow-lg">
+                            🤖
+                        </div>
+                        <div>
+                            <h1 class="text-xl md:text-2xl font-extrabold bg-gradient-to-r from-cyan-400 via-teal-300 to-blue-500 bg-clip-text text-transparent">
+                                AI World Creation Hub
+                            </h1>
+                            <p class="text-xs text-slate-400 font-medium">Self-Directed Creation Engine • Groq 24/7 Autonomous Mode</p>
+                        </div>
                     </div>
-                    <a href="https://github.com/rahulagarwal18/AI-World/tree/main/workspace" target="_blank" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 text-xs rounded-xl font-semibold transition border border-slate-700">
-                        🐙 GitHub
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 md:gap-3 w-full md:w-auto">
+                    <!-- Status Badge -->
+                    <div class="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-3.5 py-1.5 rounded-full text-emerald-400 text-xs font-semibold glow-emerald">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span>24/7 Active</span>
+                    </div>
+
+                    <!-- 5TB GDrive Badge -->
+                    <a href="https://drive.google.com/drive/folders/16JoYjvINixhs1TRgZLplF9mdIMXl-eP0" target="_blank" class="flex items-center gap-1.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 px-3.5 py-1.5 rounded-full text-blue-400 text-xs font-semibold transition">
+                        <span>☁️ 5TB Drive</span>
+                    </a>
+
+                    <!-- GitHub Repo -->
+                    <a href="https://github.com/rahulagarwal18/AI-World/tree/main/workspace" target="_blank" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-300 transition border border-slate-700">
+                        <span>🐙 GitHub</span>
                     </a>
                 </div>
             </header>
 
-            <!-- Grid Layout -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Left Column: Active Creations & Thoughts -->
-                <div class="glass p-6 rounded-2xl space-y-4">
-                    <h2 class="text-xl font-bold text-cyan-400 flex items-center gap-2">
-                        <span>⚡</span> Live Action Stream
-                    </h2>
-                    <div id="actions-list" class="space-y-3 max-h-[600px] overflow-y-auto pr-2">
-                        <p class="text-slate-500 text-sm">Loading AI activity stream...</p>
-                    </div>
-                </div>
+            <!-- Mobile View Navigation Tabs (Visible on small screens) -->
+            <div class="flex md:hidden glass rounded-xl p-1 gap-1">
+                <button onclick="switchMobileTab('stream')" id="tab-btn-stream" class="flex-1 py-2 text-xs font-bold rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                    ⚡ Stream
+                </button>
+                <button onclick="switchMobileTab('files')" id="tab-btn-files" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-400">
+                    📁 Files
+                </button>
+                <button onclick="switchMobileTab('preview')" id="tab-btn-preview" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-400">
+                    👁️ Preview
+                </button>
+            </div>
 
-                <!-- Middle Column: Generated Files & Workspace Tree -->
-                <div class="glass p-6 rounded-2xl space-y-4">
-                    <h2 class="text-xl font-bold text-blue-400 flex items-center gap-2">
-                        <span>📁</span> Created Files & Apps
-                    </h2>
-                    <div id="files-list" class="space-y-2 max-h-[600px] overflow-y-auto">
-                        <p class="text-slate-500 text-sm">Loading files...</p>
-                    </div>
-                </div>
+            <!-- Main Layout Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6">
 
-                <!-- Right Column: Interactive Live Preview -->
-                <div class="glass p-6 rounded-2xl space-y-4">
-                    <h2 class="text-xl font-bold text-emerald-400 flex items-center gap-2">
-                        <span>👁️</span> Live Web Preview
-                    </h2>
-                    <div class="border border-slate-700 rounded-xl overflow-hidden h-[550px] bg-slate-950 flex flex-col">
-                        <div class="bg-slate-900 px-4 py-2 border-b border-slate-800 text-xs text-slate-400 flex justify-between">
-                            <span id="preview-title">Select a file to preview</span>
-                            <span id="preview-status" class="text-emerald-400">Ready</span>
+                <!-- Left Panel: Live Action Stream -->
+                <div id="panel-stream" class="md:col-span-4 glass p-4 md:p-5 rounded-2xl md:rounded-3xl space-y-4 flex flex-col h-[520px] md:h-[650px]">
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+                        <h2 class="text-base font-bold text-cyan-400 flex items-center gap-2">
+                            <span>⚡</span> Live Action Stream
+                        </h2>
+                        <span id="stream-count" class="text-[11px] mono text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded-md">0 Steps</span>
+                    </div>
+
+                    <div id="actions-list" class="space-y-3 overflow-y-auto flex-1 pr-1">
+                        <div class="text-center py-10 space-y-2">
+                            <div class="w-8 h-8 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin mx-auto"></div>
+                            <p class="text-slate-400 text-xs">Connecting to Groq AI Stream...</p>
                         </div>
-                        <iframe id="preview-frame" class="w-full flex-1 bg-white"></iframe>
                     </div>
                 </div>
+
+                <!-- Middle Panel: Created Files & Workspace Tree -->
+                <div id="panel-files" class="hidden md:flex md:col-span-3 glass p-4 md:p-5 rounded-2xl md:rounded-3xl space-y-4 flex-col h-[520px] md:h-[650px]">
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+                        <h2 class="text-base font-bold text-blue-400 flex items-center gap-2">
+                            <span>📁</span> Workspace Files
+                        </h2>
+                        <span id="files-count" class="text-[11px] mono text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded-md">0 Files</span>
+                    </div>
+
+                    <div id="files-list" class="space-y-2 overflow-y-auto flex-1 pr-1">
+                        <p class="text-slate-500 text-xs text-center py-10">Loading workspace files...</p>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Dual-Mode Interactive Visual App Viewer -->
+                <div id="panel-preview" class="hidden md:flex md:col-span-5 glass p-4 md:p-5 rounded-2xl md:rounded-3xl space-y-4 flex-col h-[520px] md:h-[650px]">
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-base font-bold text-emerald-400 flex items-center gap-2">
+                                <span>👁️</span> Visual Workspace
+                            </h2>
+                            <span id="preview-filename" class="text-xs mono text-cyan-300 font-semibold bg-slate-900 px-2.5 py-0.5 rounded-md border border-slate-800 truncate max-w-[150px]">Select a file</span>
+                        </div>
+
+                        <!-- Visual Mode Toggle -->
+                        <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-800 text-[11px] font-semibold">
+                            <button onclick="setPreviewMode('visual')" id="btn-mode-visual" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                🌐 App Render
+                            </button>
+                            <button onclick="setPreviewMode('code')" id="btn-mode-code" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-slate-200">
+                                💻 Code
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Main Preview Container -->
+                    <div class="flex-1 bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden flex flex-col relative">
+                        <!-- Live Web Iframe View -->
+                        <div id="view-container-visual" class="w-full h-full flex flex-col">
+                            <iframe id="preview-iframe" class="w-full h-full bg-white border-0"></iframe>
+                            <div id="visual-empty-state" class="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center space-y-3">
+                                <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-2xl text-cyan-400">
+                                    🚀
+                                </div>
+                                <h3 class="text-sm font-bold text-slate-200">Visual App Renderer Ready</h3>
+                                <p class="text-xs text-slate-400 max-w-xs">Click any file or web application created by the AI to launch its live visual output here.</p>
+                            </div>
+                        </div>
+
+                        <!-- Raw Code Inspector View -->
+                        <div id="view-container-code" class="w-full h-full hidden flex-col bg-slate-950">
+                            <pre id="code-text" class="w-full h-full p-4 mono text-xs text-cyan-300 overflow-auto whitespace-pre-wrap leading-relaxed"></pre>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
         <script>
-            let isAutoStepRunning = false;
+            let currentSelectedFile = null;
+            let currentMode = 'visual';
 
-            async function autoTriggerStep() {
-                if (isAutoStepRunning) return;
-                isAutoStepRunning = true;
+            function switchMobileTab(tab) {
+                const panels = ['stream', 'files', 'preview'];
+                panels.forEach(p => {
+                    const el = document.getElementById('panel-' + p);
+                    const btn = document.getElementById('tab-btn-' + p);
+                    if (p === tab) {
+                        el.classList.remove('hidden');
+                        el.classList.add('flex');
+                        btn.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/30';
+                    } else {
+                        el.classList.add('hidden');
+                        el.classList.remove('flex');
+                        btn.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-400';
+                    }
+                });
+            }
+
+            function setPreviewMode(mode) {
+                currentMode = mode;
+                const btnVisual = document.getElementById('btn-mode-visual');
+                const btnCode = document.getElementById('btn-mode-code');
+                const viewVisual = document.getElementById('view-container-visual');
+                const viewCode = document.getElementById('view-container-code');
+
+                if (mode === 'visual') {
+                    btnVisual.className = 'px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                    btnCode.className = 'px-2.5 py-1 rounded-lg text-slate-400 hover:text-slate-200';
+                    viewVisual.classList.remove('hidden');
+                    viewVisual.classList.add('flex');
+                    viewCode.classList.add('hidden');
+                    viewCode.classList.remove('flex');
+                } else {
+                    btnCode.className = 'px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/30';
+                    btnVisual.className = 'px-2.5 py-1 rounded-lg text-slate-400 hover:text-slate-200';
+                    viewCode.classList.remove('hidden');
+                    viewCode.classList.add('flex');
+                    viewVisual.classList.add('hidden');
+                    viewVisual.classList.remove('flex');
+                }
+            }
+
+            async function previewFile(filename) {
+                currentSelectedFile = filename;
+                document.getElementById('preview-filename').innerText = filename;
+                document.getElementById('visual-empty-state').classList.add('hidden');
+
+                const iframe = document.getElementById('preview-iframe');
+                const codePre = document.getElementById('code-text');
+                const previewUrl = '/preview/' + filename;
+
+                iframe.src = previewUrl;
+
                 try {
-                    await fetch('/api/step');
-                    await loadData();
+                    const res = await fetch(previewUrl);
+                    const text = await res.text();
+                    codePre.innerText = text;
                 } catch(e) {
-                    console.error("Auto step error:", e);
-                } finally {
-                    isAutoStepRunning = false;
+                    codePre.innerText = "Error loading code content.";
+                }
+
+                // If on mobile, auto-switch tab to preview when clicking a file
+                if (window.innerWidth < 768) {
+                    switchMobileTab('preview');
                 }
             }
 
             async function loadData() {
                 try {
+                    // 1. Load Actions Stream
                     const resHist = await fetch('/api/history');
                     const dataHist = await resHist.json();
                     const actionsDiv = document.getElementById('actions-list');
+                    const streamCount = document.getElementById('stream-count');
                     
                     if (dataHist.history && dataHist.history.length > 0) {
+                        streamCount.innerText = dataHist.history.length + ' Actions';
                         actionsDiv.innerHTML = dataHist.history.slice().reverse().map(item => {
                             const act = item.action || {};
+                            const actType = act.action || 'ACTION';
+                            let badgeColor = 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30';
+                            if (actType === 'write_file') badgeColor = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+                            if (actType === 'sync_gdrive') badgeColor = 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+                            if (actType === 'reflect') badgeColor = 'bg-purple-500/20 text-purple-400 border-purple-500/30';
+
                             return `
-                                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700/50 space-y-2">
+                                <div class="glass-card p-3.5 rounded-2xl space-y-2 hover:border-slate-600 transition">
                                     <div class="flex justify-between items-center">
-                                        <span class="px-2 py-0.5 rounded text-xs font-bold uppercase bg-blue-500/20 text-blue-400">${act.action || 'Action'}</span>
-                                        <span class="text-[10px] text-slate-400">${new Date(item.timestamp * 1000).toLocaleTimeString()}</span>
+                                        <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase border ${badgeColor}">
+                                            ${actType}
+                                        </span>
+                                        <span class="text-[10px] mono text-slate-400">
+                                            ${new Date(item.timestamp * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}
+                                        </span>
                                     </div>
-                                    <p class="text-sm font-medium text-slate-200">${act.thought || 'Autonomous action executed'}</p>
-                                    ${act.path ? `<code class="text-xs bg-slate-900 px-2 py-1 rounded text-cyan-300 block font-mono">${act.path}</code>` : ''}
+                                    <p class="text-xs text-slate-200 leading-relaxed font-medium">
+                                        ${act.thought || 'Autonomous action executed.'}
+                                    </p>
+                                    ${act.path ? `
+                                        <button onclick="previewFile('${act.path}')" class="w-full text-left bg-slate-900/80 hover:bg-slate-900 px-3 py-1.5 rounded-xl text-[11px] mono text-cyan-300 border border-slate-800 flex items-center justify-between group transition">
+                                            <span>📄 ${act.path}</span>
+                                            <span class="text-[10px] text-slate-500 group-hover:text-cyan-400">View App →</span>
+                                        </button>
+                                    ` : ''}
                                 </div>
                             `;
                         }).join('');
                     } else {
-                        actionsDiv.innerHTML = '<p class="text-slate-500 text-sm">Auto-creation active. Running steps...</p>';
+                        streamCount.innerText = '0 Actions';
+                        actionsDiv.innerHTML = `
+                            <div class="text-center py-10 space-y-2">
+                                <p class="text-slate-400 text-xs font-semibold">24/7 Creation Loop Active</p>
+                                <p class="text-slate-500 text-[11px]">Groq model is analyzing and inventing world files...</p>
+                            </div>
+                        `;
                     }
 
+                    // 2. Load Workspace Files
                     const resFiles = await fetch('/api/files');
                     const dataFiles = await resFiles.json();
                     const filesDiv = document.getElementById('files-list');
+                    const filesCount = document.getElementById('files-count');
 
                     if (dataFiles.files && dataFiles.files.length > 0) {
-                        filesDiv.innerHTML = dataFiles.files.map(f => `
-                            <button onclick="preview('${f}')" class="w-full text-left p-3 rounded-xl bg-slate-800/50 hover:bg-slate-700/80 border border-slate-700/50 transition flex items-center justify-between group">
-                                <span class="text-sm font-mono text-slate-300 group-hover:text-cyan-300">📄 ${f}</span>
-                                <span class="text-xs text-blue-400">Preview →</span>
-                            </button>
-                        `).join('');
+                        filesCount.innerText = dataFiles.files.length + ' Files';
+                        filesDiv.innerHTML = dataFiles.files.map(f => {
+                            const isSelected = f === currentSelectedFile;
+                            const activeClass = isSelected ? 'border-cyan-500/50 bg-cyan-500/10 text-cyan-300' : 'border-slate-800 bg-slate-900/40 text-slate-300 hover:bg-slate-800/60';
+                            return `
+                                <button onclick="previewFile('${f}')" class="w-full text-left p-3 rounded-xl border transition flex items-center justify-between group ${activeClass}">
+                                    <div class="flex items-center gap-2.5 truncate">
+                                        <span class="text-sm">📄</span>
+                                        <span class="text-xs mono font-medium truncate">${f}</span>
+                                    </div>
+                                    <span class="text-[11px] text-cyan-400 font-medium opacity-80 group-hover:opacity-100">View →</span>
+                                </button>
+                            `;
+                        }).join('');
+
+                        // Auto-select first file if none selected
+                        if (!currentSelectedFile && dataFiles.files.length > 0) {
+                            previewFile(dataFiles.files[0]);
+                        }
                     } else {
-                        filesDiv.innerHTML = '<p class="text-slate-500 text-sm">No files created yet in workspace.</p>';
+                        filesCount.innerText = '0 Files';
+                        filesDiv.innerHTML = '<p class="text-slate-500 text-xs text-center py-10">No workspace files created yet.</p>';
                     }
                 } catch(e) {
-                    console.error("Error loading data:", e);
+                    console.error("Error updating viewer data:", e);
                 }
             }
 
-            function preview(filePath) {
-                document.getElementById('preview-title').innerText = filePath;
-                document.getElementById('preview-frame').src = '/preview/' + filePath;
-            }
-
+            // Initial load & 5-second smooth data refresh
             loadData();
-            // Automatically refresh data stream every 5 seconds
             setInterval(loadData, 5000);
         </script>
     </body>

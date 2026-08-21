@@ -45,13 +45,15 @@ class AgentLoop:
     def _load_persistent_history(self) -> List[Dict[str, Any]]:
         """Loads historical action logs from persistent workspace/history.json file"""
         try:
-            content = self.workspace.read_file("history.json")
-            data = json.loads(content)
-            if isinstance(data, list):
-                logger.info(f"Loaded {len(data)} persistent action logs from history.json")
-                return data
-        except Exception:
-            pass
+            res = self.workspace.read_file("history.json")
+            if isinstance(res, dict) and res.get("status") == "success":
+                content = res.get("content", "[]")
+                data = json.loads(content)
+                if isinstance(data, list):
+                    logger.info(f"Loaded {len(data)} persistent action logs from history.json")
+                    return data
+        except Exception as e:
+            logger.error(f"Error loading persistent history: {e}")
         return []
 
     def _save_persistent_history(self):

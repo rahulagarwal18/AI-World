@@ -13,6 +13,6 @@ class Config:
     
     WORKSPACE_DIR: Path = BASE_DIR / "workspace"
     MAX_GROQ_RETRIES: int = 5
-    MODEL_NAME = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    MODEL_NAME = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
 
 Config.WORKSPACE_DIR.mkdir(parents=True, exist_ok=True)

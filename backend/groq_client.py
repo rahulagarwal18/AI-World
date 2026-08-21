@@ -48,26 +48,34 @@ class GroqEngine:
             {"role": "user", "content": user_context}
         ]
 
-        while retries < 8:
-            try:
-                response = self.client.chat.completions.create(
-                    model=self.model,
-                    messages=messages,
-                    response_format={"type": "json_object"},
-                    temperature=0.7,
-                    max_tokens=4096
-                )
-                raw_content = response.choices[0].message.content
-                return json.loads(raw_content)
-            except Exception as e:
-                err_str = str(e).lower()
-                if "429" in err_str or "rate limit" in err_str:
-                    logger.warning(f"Groq Rate limit hit. Retrying in {wait_time}s... (Attempt {retries+1})")
-                    time.sleep(wait_time)
-                    wait_time = min(wait_time * 2, 60)
-                    retries += 1
-                else:
-                    logger.error(f"Error calling Groq API: {e}")
+        models_to_try = [self.model, "openai/gpt-oss-20b", "openai/gpt-oss-120b"]
+        for current_model in models_to_try:
+            retries = 0
+            wait_time = 2
+            while retries < 3:
+                try:
+                    response = self.client.chat.completions.create(
+                        model=current_model,
+                        messages=messages,
+                        response_format={"type": "json_object"},
+                        temperature=0.7,
+                        max_tokens=4096
+                    )
+                    raw_content = response.choices[0].message.content
+                    return json.loads(raw_content)
+                except Exception as e:
+                    err_str = str(e).lower()
+                    if "404" in err_str or "model_not_found" in err_str:
+                        logger.warning(f"Model {current_model} not found, falling back...")
+                        break
+                    elif "429" in err_str or "rate limit" in err_str:
+                        logger.warning(f"Groq Rate limit hit on {current_model}. Retrying in {wait_time}s... (Attempt {retries+1})")
+                        time.sleep(wait_time)
+                        wait_time = min(wait_time * 2, 10)
+                        retries += 1
+                    else:
+                        logger.error(f"Error calling Groq API ({current_model}): {e}")
+                        break
                     return {
                         "action": "reflect",
                         "thought": f"Groq API error: {str(e)}"

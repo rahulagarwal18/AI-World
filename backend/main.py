@@ -91,7 +91,13 @@ def get_status():
 @app.get("/api/history")
 def get_history():
     ag = get_agent()
-    return {"history": ag.history}
+    clean_history = [
+        item for item in ag.history
+        if isinstance(item, dict)
+        and item.get("action", {}).get("action") != "reflect"
+        and "error" not in str(item.get("action", {}).get("thought", "")).lower()
+    ]
+    return {"history": clean_history}
 
 @app.post("/step")
 @app.post("/api/step")

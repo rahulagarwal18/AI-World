@@ -73,15 +73,15 @@ class AgentLoop:
         """
         Runs one iteration of the autonomous brainstorming and creation loop.
         """
-        existing_files = self.workspace.list_files()
+        existing_files = [f for f in self.workspace.list_files() if f != "history.json"]
         context = {
-            "existing_files": existing_files[:10],
-            "recent_actions": self.history[-2:] if self.history else [],
-            "instruction": "Inspect workspace, decide what to create or improve next, and take action."
+            "existing_files": existing_files[:5],
+            "recent_actions": [h.get("action", {}).get("path") for h in self.history[-2:] if isinstance(h, dict)],
+            "instruction": "Create or expand a world asset/file."
         }
         context_str = json.dumps(context)
-        if len(context_str) > 3000:
-            context_str = context_str[:3000]
+        if len(context_str) > 800:
+            context_str = context_str[:800]
 
         action = self.groq.generate_action(SYSTEM_PROMPT, context_str)
         result = self._execute_action(action)

@@ -69,9 +69,15 @@ class GroqEngine:
                         logger.warning(f"Model {current_model} not found, falling back...")
                         break
                     elif "429" in err_str or "rate limit" in err_str:
-                        logger.warning(f"Groq Rate limit hit on {current_model}. Retrying in {wait_time}s... (Attempt {retries+1})")
-                        time.sleep(wait_time)
-                        wait_time = min(wait_time * 2, 10)
+                        # Extract exact retry delay if provided by Groq
+                        delay = wait_time
+                        import re
+                        match = re.search(r"try again in (\d+\.?\d*)s", err_str)
+                        if match:
+                            delay = float(match.group(1)) + 1.0
+                        logger.warning(f"Groq Rate limit hit on {current_model}. Retrying in {delay}s... (Attempt {retries+1})")
+                        time.sleep(delay)
+                        wait_time = min(wait_time * 2, 20)
                         retries += 1
                     else:
                         logger.error(f"Error calling Groq API ({current_model}): {e}")

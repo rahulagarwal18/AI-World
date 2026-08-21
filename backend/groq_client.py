@@ -1,5 +1,6 @@
 import time
 import json
+import os
 import logging
 from typing import Dict, Any, List, Optional
 from groq import Groq
@@ -10,15 +11,35 @@ logger = logging.getLogger("GroqEngine")
 
 class GroqEngine:
     def __init__(self):
-        if not Config.GROQ_API_KEY:
-            raise ValueError("GROQ_API_KEY is not configured in .env file!")
-        self.client = Groq(api_key=Config.GROQ_API_KEY)
+        self.api_key = os.getenv("GROQ_API_KEY", "").strip() or Config.GROQ_API_KEY
+        self.client = None
+        if self.api_key:
+            try:
+                self.client = Groq(api_key=self.api_key)
+            except Exception as e:
+                logger.error(f"Failed to initialize Groq client: {e}")
+        else:
+            logger.warning("GROQ_API_KEY environment variable is not set.")
+
         self.model = Config.MODEL_NAME
 
     def generate_action(self, system_prompt: str, user_context: str) -> Dict[str, Any]:
         """
         Queries Groq API expecting a structured JSON action object with exponential backoff on 429 rate limits.
         """
+        if not self.client:
+            self.api_key = os.getenv("GROQ_API_KEY", "").strip() or Config.GROQ_API_KEY
+            if self.api_key:
+                try:
+                    self.client = Groq(api_key=self.api_key)
+                except Exception:
+                    pass
+            if not self.client:
+                return {
+                    "action": "reflect",
+                    "thought": "GROQ_API_KEY environment variable is missing on server. Awaiting key configuration."
+                }
+
         retries = 0
         wait_time = 2
 
@@ -47,6 +68,12 @@ class GroqEngine:
                     retries += 1
                 else:
                     logger.error(f"Error calling Groq API: {e}")
-                    raise e
+                    return {
+                        "action": "reflect",
+                        "thought": f"Groq API error: {str(e)}"
+                    }
         
-        raise RuntimeError("Exceeded maximum retries for Groq API calls due to rate limits.")
+        return {
+            "action": "reflect",
+            "thought": "Exceeded maximum retries for Groq API calls due to rate limits."
+        }

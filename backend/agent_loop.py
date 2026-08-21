@@ -53,12 +53,15 @@ class AgentLoop:
         """
         existing_files = self.workspace.list_files()
         context = {
-            "existing_files": existing_files,
-            "recent_actions": self.history[-5:] if self.history else [],
+            "existing_files": existing_files[:10],
+            "recent_actions": self.history[-2:] if self.history else [],
             "instruction": "Inspect workspace, decide what to create or improve next, and take action."
         }
+        context_str = json.dumps(context)
+        if len(context_str) > 3000:
+            context_str = context_str[:3000]
 
-        action = self.groq.generate_action(SYSTEM_PROMPT, json.dumps(context))
+        action = self.groq.generate_action(SYSTEM_PROMPT, context_str)
         result = self._execute_action(action)
         
         cycle_log = {

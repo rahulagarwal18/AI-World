@@ -23,8 +23,8 @@ def get_agent():
 class DummyAgent:
     def __init__(self):
         self.history = []
-        self.workspace = type('obj', (object,), {'list_files': lambda: []})()
-        self.gdrive = type('obj', (object,), {'folder_id': '16JoYjvINixhs1TRgZLplF9mdIMXl-eP0', 'sync_file_info': lambda f, c: {'status': 'initializing'}})()
+        self.workspace = type('obj', (object,), {'list_files': lambda *args, **kwargs: []})()
+        self.gdrive = type('obj', (object,), {'folder_id': '16JoYjvINixhs1TRgZLplF9mdIMXl-eP0', 'sync_file_info': lambda *args, **kwargs: {'status': 'initializing'}})()
 
     def run_cycle(self):
         ag = get_agent()

@@ -34,6 +34,20 @@ class DummyAgent:
 
 agent = DummyAgent()
 
+is_running = True
+
+async def run_autonomous_loop():
+    """Runs the 24/7 background creation loop"""
+    logger = logging.getLogger("BackgroundLoop")
+    logger.info("Starting background autonomous creation loop...")
+    while is_running:
+        try:
+            log = agent.run_cycle()
+            logger.info(f"Completed cycle action: {log.get('action') if isinstance(log, dict) else log}")
+        except Exception as e:
+            logger.error(f"Error in autonomous loop: {e}")
+        await asyncio.sleep(25)
+
 async def self_keep_alive():
     """Pings public URL every 4 minutes to ensure zero spin-down delay"""
     import httpx

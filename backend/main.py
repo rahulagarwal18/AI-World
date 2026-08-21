@@ -7,7 +7,31 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.agent_loop import AgentLoop
 from backend.config import Config
 
-agent = AgentLoop()
+_agent_instance = None
+
+def get_agent():
+    global _agent_instance
+    if _agent_instance is None:
+        try:
+            _agent_instance = AgentLoop()
+        except Exception as e:
+            logging.error(f"Error initializing AgentLoop: {e}")
+            _agent_instance = None
+    return _agent_instance
+
+class DummyAgent:
+    def __init__(self):
+        self.history = []
+        self.workspace = type('obj', (object,), {'list_files': lambda: []})()
+        self.gdrive = type('obj', (object,), {'folder_id': '16JoYjvINixhs1TRgZLplF9mdIMXl-eP0', 'sync_file_info': lambda f, c: {'status': 'initializing'}})()
+
+    def run_cycle(self):
+        ag = get_agent()
+        if ag:
+            return ag.run_cycle()
+        return {"status": "initializing", "action": {"action": "reflect", "thought": "Initializing Agent Loop..."}}
+
+agent = DummyAgent()
 
 async def self_keep_alive():
     """Pings public URL every 4 minutes to ensure zero spin-down delay"""

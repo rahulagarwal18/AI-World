@@ -276,8 +276,8 @@ def get_visual_viewer():
             }
 
             loadData();
-            // Automatically poll and trigger AI steps every 12 seconds
-            setInterval(autoTriggerStep, 12000);
+            // Automatically refresh data stream every 5 seconds
+            setInterval(loadData, 5000);
         </script>
     </body>
     </html>

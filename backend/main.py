@@ -121,14 +121,20 @@ def list_files():
     ag = get_agent()
     return {"files": ag.workspace.list_files()}
 
+NO_CACHE_HEADERS = {
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+    "Pragma": "no-cache",
+    "Expires": "0"
+}
+
 @app.get("/preview/{file_path:path}")
 def preview_file(file_path: str):
     target = (Config.WORKSPACE_DIR / file_path).resolve()
     if not target.exists():
-        return Response(content="File not found", status_code=404)
-    return FileResponse(target)
+        return Response(content="File not found", status_code=404, headers=NO_CACHE_HEADERS)
+    return FileResponse(target, headers=NO_CACHE_HEADERS)
 
 @app.get("/viewer")
 def get_visual_viewer():
     template_path = Path(__file__).parent / "templates" / "viewer.html"
-    return FileResponse(template_path)
+    return FileResponse(template_path, headers=NO_CACHE_HEADERS)

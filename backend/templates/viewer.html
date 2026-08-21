@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <title>AI World Creation Hub - Autonomous 24/7 Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -212,7 +215,7 @@
 
             const iframe = document.getElementById('preview-iframe');
             const codePre = document.getElementById('code-text');
-            const previewUrl = '/preview/' + filename;
+            const previewUrl = '/preview/' + filename + '?t=' + Date.now();
 
             try {
                 const res = await fetch(previewUrl);
@@ -282,7 +285,7 @@
         async function loadData() {
             try {
                 // 1. Load Actions Stream
-                const resHist = await fetch('/api/history');
+                const resHist = await fetch('/api/history?t=' + Date.now());
                 const dataHist = await resHist.json();
                 const actionsDiv = document.getElementById('actions-list');
                 const streamCount = document.getElementById('stream-count');
@@ -323,7 +326,7 @@
                 }
 
                 // 2. Load Workspace Files
-                const resFiles = await fetch('/api/files');
+                const resFiles = await fetch('/api/files?t=' + Date.now());
                 const dataFiles = await resFiles.json();
                 const filesDiv = document.getElementById('files-list');
                 const filesCount = document.getElementById('files-count');

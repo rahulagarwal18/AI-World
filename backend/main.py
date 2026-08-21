@@ -2,7 +2,7 @@ import asyncio
 import logging
 from pathlib import Path
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, Response, BackgroundTasks
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from backend.agent_loop import AgentLoop
@@ -103,14 +103,11 @@ def get_history():
 @app.post("/api/step")
 @app.get("/step")
 @app.get("/api/step")
-def trigger_step():
-    """Triggers an autonomous creation step (Serverless & Cron Compatible)"""
-    try:
-        ag = get_agent()
-        log = ag.run_cycle()
-        return log
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
+async def trigger_step(background_tasks: BackgroundTasks):
+    """Triggers an autonomous creation step in background task (Instant < 1ms response time)"""
+    ag = get_agent()
+    background_tasks.add_task(asyncio.to_thread, ag.run_cycle)
+    return {"status": "success", "message": "Autonomous step launched in background task"}
 
 @app.get("/debug/gdrive")
 def debug_gdrive():

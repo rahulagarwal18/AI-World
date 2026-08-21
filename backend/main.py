@@ -9,7 +9,35 @@ from backend.config import Config
 
 agent = AgentLoop()
 
-app = FastAPI(title="Autonomous AI Creation Engine")
+async def self_keep_alive():
+    """Pings public URL every 4 minutes to ensure zero spin-down delay"""
+    import httpx
+    logger = logging.getLogger("KeepAlive")
+    urls = [
+        "https://autowork-world-ai.onrender.com/api",
+        "https://ai-world-rudu.onrender.com/api"
+    ]
+    while True:
+        await asyncio.sleep(240)
+        for url in urls:
+            try:
+                async with httpx.AsyncClient() as client:
+                    await client.get(url, timeout=10)
+                logger.info(f"Keep-Alive ping sent to {url}")
+            except Exception as e:
+                logger.warning(f"Keep-Alive ping error: {e}")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    task = asyncio.create_task(run_autonomous_loop())
+    ping_task = asyncio.create_task(self_keep_alive())
+    yield
+    global is_running
+    is_running = False
+    task.cancel()
+    ping_task.cancel()
+
+app = FastAPI(title="Autonomous AI Creation Engine", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

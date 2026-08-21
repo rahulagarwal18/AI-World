@@ -48,20 +48,32 @@ class GroqEngine:
             {"role": "user", "content": user_context}
         ]
 
-        models_to_try = [self.model, "openai/gpt-oss-20b", "openai/gpt-oss-120b"]
+        models_to_try = [self.model, "qwen/qwen3.6-27b", "allam-2-7b", "openai/gpt-oss-20b"]
         for current_model in models_to_try:
             retries = 0
             wait_time = 2
             while retries < 3:
                 try:
-                    response = self.client.chat.completions.create(
-                        model=current_model,
-                        messages=messages,
-                        response_format={"type": "json_object"},
-                        temperature=0.7,
-                        max_tokens=4096
-                    )
-                    raw_content = response.choices[0].message.content
+                    kwargs = {
+                        "model": current_model,
+                        "messages": messages,
+                        "temperature": 0.7,
+                        "max_tokens": 4096
+                    }
+                    if "qwen" not in current_model.lower():
+                        kwargs["response_format"] = {"type": "json_object"}
+
+                    response = self.client.chat.completions.create(**kwargs)
+                    raw_content = response.choices[0].message.content or ""
+                    
+                    # Clean out <think>...</think> reasoning blocks if present
+                    import re
+                    raw_content = re.sub(r'<think>[\s\S]*?</think>', '', raw_content).strip()
+                    
+                    # Extract JSON object using regex
+                    json_match = re.search(r'\{[\s\S]*\}', raw_content)
+                    if json_match:
+                        return json.loads(json_match.group(0))
                     return json.loads(raw_content)
                 except Exception as e:
                     err_str = str(e).lower()

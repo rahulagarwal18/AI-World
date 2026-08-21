@@ -48,44 +48,58 @@ class GroqEngine:
             {"role": "user", "content": user_context}
         ]
 
-        models_to_try = [self.model, "qwen/qwen3.6-27b", "allam-2-7b", "openai/gpt-oss-20b"]
+        models_to_try = [self.model, "openai/gpt-oss-20b", "qwen/qwen3.6-27b"]
+        # Rotate primary model for next call to distribute TPM across models
+        self.model = "qwen/qwen3.6-27b" if self.model == "openai/gpt-oss-20b" else "openai/gpt-oss-20b"
+        
         for current_model in models_to_try:
             retries = 0
             wait_time = 2
-            while retries < 3:
+            while retries < 2:
                 try:
                     kwargs = {
                         "model": current_model,
                         "messages": messages,
                         "temperature": 0.7,
-                        "max_tokens": 4096
+                        "max_tokens": 3500,
+                        "response_format": {"type": "json_object"}
                     }
-                    if "qwen" not in current_model.lower():
-                        kwargs["response_format"] = {"type": "json_object"}
 
                     response = self.client.chat.completions.create(**kwargs)
-                    raw_content = response.choices[0].message.content or ""
-                    
-                    # Clean out <think>...</think> reasoning blocks if present
-                    import re
-                    raw_content = re.sub(r'<think>[\s\S]*?</think>', '', raw_content).strip()
-                    
-                    # Extract JSON object using regex
-                    json_match = re.search(r'\{[\s\S]*\}', raw_content)
-                    if json_match:
-                        return json.loads(json_match.group(0))
-                    return json.loads(raw_content)
+                    raw_content = response.choices[0].message.content or "{}"
+                    try:
+                        return json.loads(raw_content)
+                    except Exception:
+                        pass
                 except Exception as e:
-                    err_str = str(e).lower()
-                    if "404" in err_str or "model_not_found" in err_str:
+                    err_str = str(e)
+                    # If Groq returned a failed_generation payload on large files, extract and repair it!
+                    if "failed_generation" in err_str:
+                        import re
+                        fg_match = re.search(r"'failed_generation':\s*'(.*?)'(\}|\,)", err_str, re.DOTALL)
+                        if fg_match:
+                            raw_fg = fg_match.group(1).encode().decode('unicode-escape', 'ignore')
+                            p_m = re.search(r'"path":\s*"([^"]+)"', raw_fg)
+                            t_m = re.search(r'"thought":\s*"([^"]+)"', raw_fg)
+                            c_idx = raw_fg.find('"content": "')
+                            if c_idx != -1:
+                                code_str = raw_fg[c_idx + 12:].rstrip('"}')
+                                return {
+                                    "action": "write_file",
+                                    "path": p_m.group(1) if p_m else "world_system.js",
+                                    "thought": t_m.group(1) if t_m else "Constructed high-density world engine system.",
+                                    "content": code_str
+                                }
+
+                    if "404" in err_str.lower() or "model_not_found" in err_str.lower():
                         logger.warning(f"Model {current_model} not found, falling back...")
                         break
-                    elif "429" in err_str or "rate limit" in err_str:
+                    elif "429" in err_str.lower() or "rate limit" in err_str.lower():
                         # Extract exact retry delay if provided by Groq (e.g. 8m15s or 14.9s)
                         delay = 10
                         import re
-                        m_min = re.search(r"try again in (\d+)m(\d+\.?\d*)s", err_str)
-                        m_sec = re.search(r"try again in (\d+\.?\d*)s", err_str)
+                        m_min = re.search(r"try again in (\d+)m(\d+\.?\d*)s", err_str.lower())
+                        m_sec = re.search(r"try again in (\d+\.?\d*)s", err_str.lower())
                         if m_min:
                             delay = int(m_min.group(1)) * 60 + float(m_min.group(2)) + 1.0
                         elif m_sec:
